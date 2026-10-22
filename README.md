@@ -82,7 +82,7 @@ git push -u origin main
 
 也可以使用 VS Code「源代码管理 → 发布到 GitHub」。整个 `public/vendor` 必须提交：包含模型、WASM 和运行库，缺少其中的文件会导致手势识别无法启动。单个依赖文件约 10 MB 以下，项目不依赖 Git LFS。
 
-## 6. 部署 Cloudflare Pages
+## 6. 部署 GitHub Pages 与 Cloudflare Pages
 
 ### 方案 A：连接 GitHub（建议）
 
@@ -157,4 +157,4 @@ npm run build
 - 页面变慢：减少图层数量，关闭其他占用 GPU 的程序；实际性能以设备实测为准。
 - 拍照和录像不会自动写入你选择的磁盘目录，需要点击作品卡片上的下载。
 
-交付验证范围见 VALIDATION.md。项目源码与部署配置已经备齐，本次未代登录或发布到你的 GitHub / Cloudflare 账号。
+交付验证范围见 VALIDATION.md。GitHub Pages 已成功部署，在线地址为 https://huangyulin050820-dot.github.io/gesture-mask-studio/；后续更新 main 分支会自动发布。
