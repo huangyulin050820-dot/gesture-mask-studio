@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101210" />
+    <meta
+      name="description"
+      content="用双手塑造实时影像：半透明特效蒙版、手势交互、拍照和录像。"
+    />
+    <title>折映 REFRACT — 手势影像实验室</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./"
+        ><span class="brand-mark">◩</span
+        ><strong>折映 <span>REFRACT</span></strong
+        ><small>交互影像实验室</small></a
+      >
+      <div class="top-right">
+        <span class="local-tag"><i></i> 本机处理 · 影像不上传</span
+        ><button id="helpBtn" class="subtle">使用指南 ↗</button>
+      </div>
+    </header>
+    <main>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">YOUR HANDS. YOUR CANVAS.</div>
+          <h1>让影像，随手而变<span>。</span></h1>
+        </div>
+        <p>捕捉此刻，叠加想象。<br />用手势探索实时视觉的另一种可能。</p>
+      </div>
+      <div class="workspace">
+        <section class="studio" aria-label="实时影像工作区">
+          <div class="stage-toolbar">
+            <span
+              ><i id="liveDot" class="dot"></i> <b id="sourceStatus">演示画布</b
+              ><small id="fps">— FPS</small></span
+            >
+            <div>
+              <button id="mirrorBtn" aria-pressed="true" title="切换摄像头镜像">
+                ↔ 镜像</button
+              ><button id="guideBtn" aria-pressed="true">⌗ 辅助线</button
+              ><button id="fullscreenBtn" title="全屏画布">⛶</button>
+            </div>
+          </div>
+          <div id="stage" class="stage">
+            <canvas
+              id="output"
+              width="1280"
+              height="720"
+              aria-label="实时合成影像，可拖动蒙版，滚轮缩放"
+            ></canvas
+            ><canvas
+              id="guides"
+              width="1280"
+              height="720"
+              aria-hidden="true"
+            ></canvas>
+            <div class="stage-tag">
+              <span id="modeTag">DEMO / 可直接拖动蒙版体验</span
+              ><span id="recBadge" hidden>● REC <b id="recTime">00:00</b></span>
+            </div>
+            <div class="stage-bottom">
+              <span id="gestureStatus">开启摄像头，开始手势创作</span
+              ><span id="resolution">1280 × 720</span>
+            </div>
+            <div id="countdown" hidden></div>
+            <div id="flash"></div>
+          </div>
+          <div class="capture-bar">
+            <div class="camera-group">
+              <button id="cameraBtn" class="primary">◉ 开启摄像头</button
+              ><button
+                id="switchBtn"
+                class="icon-btn"
+                title="切换前后摄像头"
+                disabled
+              >
+                ⇄
+              </button>
+            </div>
+            <div class="capture-group">
+              <button id="photoBtn" title="拍照 / 空格键">
+                ◎ <span>拍照</span></button
+              ><button id="recordBtn" title="录制 / R 键">
+                <i class="record-dot"></i><span>开始录制</span>
+              </button>
+            </div>
+            <span class="export-note">PNG / 视频 · 仅画面</span>
+          </div>
+          <div class="gesture-strip">
+            <div>
+              <span class="gesture-icon">⌁</span><b>单手捏合</b
+              ><small>选中并拖动蒙版</small>
+            </div>
+            <div>
+              <span class="gesture-icon">↔</span><b>双手捏合</b
+              ><small>移动与缩放蒙版</small>
+            </div>
+            <div>
+              <span class="gesture-icon">✌</span><b>V 手势停留</b
+              ><small>拍照 · 保持 1 秒</small>
+            </div>
+            <button id="trackingBtn" aria-pressed="false">
+              手势识别：未开启
+            </button>
+          </div>
+          <section class="gallery-section">
+            <div class="section-title">
+              <h2>灵感留存 <small>CAPTURES</small></h2>
+              <span id="galleryCount">本次会话 · 0 项</span>
+            </div>
+            <div id="gallery" class="gallery">
+              <div class="gallery-empty">
+                ◎
+                <span
+                  >你的第一张作品，从一次快门开始。<small
+                    >拍摄后在这里预览、下载；刷新前记得保存。</small
+                  ></span
+                >
+              </div>
+            </div>
+          </section>
+        </section>
+        <aside class="panel">
+          <section class="effects-section">
+            <div class="section-title">
+              <h2>特效库 <small>EFFECTS</small></h2>
+              <span>点击添加 +</span>
+            </div>
+            <div id="effectGrid" class="effect-grid"></div>
+          </section>
+          <section class="layers-section">
+            <div class="section-title">
+              <h2>蒙版图层 <small id="layerCount">00 / 06</small></h2>
+              <button id="clearBtn" class="subtle">清空</button>
+            </div>
+            <p class="hint">上方图层覆盖下方 · 最多 6 层</p>
+            <div id="layerList" class="layer-list"></div>
+          </section>
+          <section id="inspector" class="inspector">
+            <div class="section-title">
+              <h2>调整蒙版</h2>
+              <span id="selectedLabel">—</span>
+            </div>
+            <label class="range-label" for="opacity"
+              >不透明度 <output id="opacityValue">60%</output></label
+            ><input
+              id="opacity"
+              type="range"
+              min="10"
+              max="85"
+              value="60"
+            /><label class="range-label" for="strength"
+              >效果强度 <output id="strengthValue">70%</output></label
+            ><input id="strength" type="range" min="0" max="100" value="70" />
+            <div class="setting-row">
+              <label for="shape">蒙版形状</label
+              ><select id="shape">
+                <option value="rect">矩形</option>
+                <option value="round">圆角矩形</option>
+                <option value="ellipse">椭圆</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label for="blend">混合方式</label
+              ><select id="blend">
+                <option value="source-over">正常叠加</option>
+                <option value="screen">滤色 · 提亮</option>
+                <option value="multiply">正片叠底</option>
+                <option value="soft-light">柔光</option>
+              </select>
+            </div>
+            <div class="mini-actions">
+              <button id="smallerBtn">− 缩小</button
+              ><button id="largerBtn">＋ 放大</button
+              ><button id="centerBtn">居中</button>
+            </div>
+          </section>
+          <div class="panel-foot">
+            <span>✳</span>
+            <p>
+              每一层，都有新的看法。<small>拖动角点缩放 · 滚轮调整大小</small>
+            </p>
+          </div>
+        </aside>
+      </div>
+      <footer>
+        <span>REFRACT / A REAL-TIME VISUAL PLAYGROUND</span
+        ><span>手势 × 蒙版 × 你的视角</span>
+      </footer>
+    </main>
+    <video id="camera" autoplay playsinline muted hidden></video>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="help">
+      <div class="dialog-head">
+        <div class="eyebrow">QUICK START</div>
+        <button id="closeHelp" aria-label="关闭指南">×</button>
+      </div>
+      <h2>把双手，变成创作工具。</h2>
+      <ol>
+        <li>
+          <b>开启摄像头</b>允许浏览器使用摄像头；模型首次初始化需要几秒钟。
+        </li>
+        <li>
+          <b>叠加特效</b
+          >点击特效卡片添加蒙版。每层都能独立调整透明度、形状和混合方式。
+        </li>
+        <li>
+          <b>捏合，移动</b>拇指和食指捏合，抓住指尖处的蒙版。松开即可放下。
+        </li>
+        <li>
+          <b>双手，缩放</b
+          >先选中图层，再用双手同时捏合；拉开双手放大，靠近缩小。
+        </li>
+        <li>
+          <b>V 手势，拍照</b>仅伸出食指和中指，保持约 1 秒。放下手后可再次触发。
+        </li>
+        <li>
+          <b>保存作品</b
+          >点击拍照或录制；停止录制后从作品区下载。录像不包含声音，也不包含辅助线。
+        </li>
+      </ol>
+      <p>
+        鼠标 / 触屏：拖动蒙版或右下角。键盘：空格拍照、R 开始 / 停止录像、Delete
+        删除当前图层。摄像头只能在 HTTPS 或 localhost
+        页面中使用。演示模式也能拍照和录像。
+      </p>
+      <p>
+        摄像头与手势计算仅在当前浏览器内进行。作品暂存于本次会话，刷新或关闭页面前请下载。录像每段最多
+        3 分钟；后台切换时会自动结束。
+      </p>
+      <button id="understood" class="primary">开始探索 ↗</button>
+    </dialog>
+    <script>
+      // 启动守卫（普通脚本，不依赖 ES 模块）：file:// 下模块/WASM 会被浏览器拦截，
+      // 直接双击或 VSCode 内置预览打开时，手势模型永远无法加载。这里给出明确提示。
+      (function () {
+        if (window.__REFRACT_GUARD__) return;
+        window.__REFRACT_GUARD__ = true;
+        var httpLike =
+          location.protocol === "http:" || location.protocol === "https:";
+        function show(msg, strong) {
+          var bar = document.createElement("div");
+          bar.setAttribute("role", "alert");
+          bar.style.cssText =
+            "position:fixed;top:0;left:0;right:0;z-index:99999;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#3d2b12;color:#ffd58a;border-bottom:1px solid #ffb84d;font:13px/1.5 system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.35);";
+          var p = document.createElement("p");
+          p.style.cssText = "margin:0;flex:1;";
+          if (strong) {
+            var b = document.createElement("b");
+            b.textContent = strong + " ";
+            p.appendChild(b);
+          }
+          p.appendChild(document.createTextNode(msg));
+          var x = document.createElement("button");
+          x.textContent = "×";
+          x.setAttribute("aria-label", "关闭提示");
+          x.style.cssText =
+            "border:0;background:rgba(255,255,255,.15);color:#ffd58a;font-size:16px;line-height:1;padding:2px 8px;border-radius:4px;cursor:pointer;";
+          x.onclick = function () {
+            bar.remove();
+          };
+          bar.appendChild(p);
+          bar.appendChild(x);
+          document.body.prepend(bar);
+        }
+        if (!httpLike) {
+          show(
+            "手势识别所需的 JavaScript 模块与 WASM 模型会被浏览器拦截，无法加载。请关闭本页，在 VSCode 中右键 index.html →「Open with Live Server」，或在项目终端运行 npm run dev 后访问 http://localhost:4173。",
+            "页面正以 file:// 方式打开，手势识别无法启动",
+          );
+        } else {
+          setTimeout(function () {
+            if (!window.__REFRACT_STARTED__)
+              show(
+                "请确认是通过 Live Server（以 public 为根目录）或 npm run dev（http://localhost:4173）打开，而不是直接双击 HTML 文件。",
+                "页面脚本未能正常加载",
+              );
+          }, 3000);
+        }
+      })();
+    </script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
